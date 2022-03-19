@@ -1,0 +1,2 @@
+include cbpi4-alarmClock/config.yaml
+recursive-include cbpi4-alarmClock/static *
