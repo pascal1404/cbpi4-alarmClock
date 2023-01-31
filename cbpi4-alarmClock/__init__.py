@@ -37,6 +37,9 @@ class AlarmClockStep(CBPiStep):
         self.remaining_seconds = seconds
         await self.push_update()
 
+    async def NextStep(self, **kwargs):
+        pass
+
     async def on_start(self):
         self.AutoMode = True
         self.heating = False
@@ -44,11 +47,17 @@ class AlarmClockStep(CBPiStep):
         self.kettle=self.get_kettle(self.props.get("Kettle", None))
         if self.kettle is not None:
             self.kettle.target_temp = 0
-        target_datetime = datetime.strptime(self.props.get("Datetime", datetime.now()), '%d.%m.%y-%H:%M')
-        now = datetime.now()
-        seconds = (target_datetime - now).total_seconds()
-        self.timer = Timer(int(seconds), on_update=self.on_timer_update, on_done=self.on_timer_done)
-        self.timer.start()
+        try:
+            target_datetime = datetime.strptime(self.props.get("Datetime", datetime.now()), '%d.%m.%y-%H:%M')
+            now = datetime.now()
+            seconds = (target_datetime - now).total_seconds()
+            self.timer = Timer(int(seconds), on_update=self.on_timer_update, on_done=self.on_timer_done)
+            self.timer.start()
+        except Exception as e:
+            self.timer = Timer(int(1), on_update=self.on_timer_update, on_done=self.on_timer_done)
+            self.cbpi.notify(self.name, 'Error with Start Date format: {}'.format(e), action=[NotificationAction("Ok", self.NextStep)])
+            
+
 
     async def on_stop(self):
         self.heating = False
